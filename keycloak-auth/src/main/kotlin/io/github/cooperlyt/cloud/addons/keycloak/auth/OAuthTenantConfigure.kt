@@ -14,11 +14,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.core.convert.converter.Converter
+import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.oauth2.core.*
 import org.springframework.security.oauth2.jwt.*
+import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager
 import org.springframework.web.reactive.config.WebFluxConfigurer
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.net.URI
 import java.security.Key
 import java.util.*
@@ -31,12 +35,13 @@ interface TenantJWKSUriProvider {
 }
 
 
+
 class TenantJWSKeySelector(private val tenants: TenantJWKSUriProvider) : JWTClaimsSetAwareJWSKeySelector<SecurityContext> {
 
 
     private val selectors: MutableMap<String, JWSKeySelector<SecurityContext>> = ConcurrentHashMap()
 
-    override fun selectKeys(jwsHeader: JWSHeader?, jwtClaimsSet: JWTClaimsSet, securityContext: SecurityContext): List<Key?> {
+    override fun selectKeys(jwsHeader: JWSHeader, jwtClaimsSet: JWTClaimsSet, securityContext: SecurityContext?): List<Key?> {
         return selectors.computeIfAbsent(toTenant(jwtClaimsSet)) { tenant: String -> fromTenant(tenant) }
             .selectJWSKeys(jwsHeader, securityContext)
     }
@@ -120,45 +125,49 @@ class JwtToClaimsSetConverter(private val jwtProcessor: JWTProcessor<SecurityCon
     }
 }
 
+
+@FunctionalInterface
+interface ReactiveTenantIssuerValidator {
+
+    fun valid(issuer: String): Mono<Boolean>
+}
+
+class ReactiveAuthenticationManagerProvider(private val tenantJWKSUriProvider: ReactiveTenantIssuerValidator) {
+
+    private val authenticationManagers: MutableMap<String, ReactiveAuthenticationManager> = mutableMapOf()
+
+
+    fun getAuthenticationManager(issuer: String): Mono<ReactiveAuthenticationManager> {
+        return authenticationManagers[issuer]?.let {
+            Mono.just(it)
+        } ?: tenantJWKSUriProvider.valid(issuer)
+            .filter{ it }
+            .flatMap { addManager(issuer) }
+    }
+
+    private fun addManager(issuer: String): Mono<JwtReactiveAuthenticationManager> {
+        return Mono.fromCallable { ReactiveJwtDecoders.fromIssuerLocation(issuer) }
+            .subscribeOn(Schedulers.boundedElastic())
+            .map { jwtDecoder -> JwtReactiveAuthenticationManager(jwtDecoder) }
+            .doOnNext { authenticationManager ->
+                authenticationManager.setJwtAuthenticationConverter(KeycloakReactiveAuthenticationConverter())
+                authenticationManagers[issuer] = authenticationManager
+            }
+    }
+}
+
 @Configuration
-@ConditionalOnBean(TenantJWKSUriProvider::class)
+@ConditionalOnBean(ReactiveTenantIssuerValidator::class)
 @ConditionalOnClass(WebFluxConfigurer::class)
 class OAuthReactiveTenantConfigure{
 
-    //TODO Do Reactive Repository
-    /**
-     *  https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/multitenancy.html#_dynamic_tenants
-     *
-     *  https://docs.spring.io/spring-security/reference/reactive/oauth2/resource-server/multitenancy.html
-     */
 
     @Bean
-    fun keySelector(tenants: TenantJWKSUriProvider): JWTClaimsSetAwareJWSKeySelector<SecurityContext>{
-        return TenantJWSKeySelector(tenants)
-    }
-
-    @Bean
-    fun tokenValidator(tenants: TenantJWKSUriProvider): OAuth2TokenValidator<Jwt>{
-        return TenantJwtIssuerValidator(tenants)
+    @Lazy
+    fun authenticationManagerProvider(tenantJWKSUriProvider: ReactiveTenantIssuerValidator): ReactiveAuthenticationManagerProvider{
+        return ReactiveAuthenticationManagerProvider(tenantJWKSUriProvider)
     }
 
 
-    @Bean
-    fun jwtProcessor(keySelector: JWTClaimsSetAwareJWSKeySelector<SecurityContext>): JwtToClaimsSetConverter {
-        val jwtProcessor = DefaultJWTProcessor<SecurityContext>()
-        jwtProcessor.jwtClaimsSetAwareJWSKeySelector = keySelector
-        return JwtToClaimsSetConverter(jwtProcessor)
-    }
-
-
-    @Bean
-    fun jwtDecoder(jwtProcessor: JwtToClaimsSetConverter, jwtValidator: OAuth2TokenValidator<Jwt>?): ReactiveJwtDecoder {
-
-
-        val decoder = NimbusReactiveJwtDecoder(jwtProcessor)
-        val validator: OAuth2TokenValidator<Jwt> = DelegatingOAuth2TokenValidator(JwtValidators.createDefault(), jwtValidator)
-        decoder.setJwtValidator(validator)
-        return decoder
-    }
 }
 
