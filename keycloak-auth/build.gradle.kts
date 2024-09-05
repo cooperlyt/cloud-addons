@@ -3,10 +3,11 @@ plugins {
     kotlin("plugin.spring") version "1.9.24"
     id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
+    `maven-publish`
 }
 
-group = "io.github.cooperlyt"
-version = "1.0-SNAPSHOT"
+group = "io.github.cooperlyt.cloud.addons"
+version = "4.0.4"
 
 repositories {
     mavenCentral()
@@ -19,11 +20,31 @@ dependencies {
 
     testImplementation(kotlin("test"))
 
+    compileOnly("org.springframework:spring-webflux")
+    compileOnly("jakarta.servlet:jakarta.servlet-api")
+
+}
+
+
+tasks.bootJar {
+    enabled = false
 }
 
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(21)
+}
+
+configure<PublishingExtension> {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
+    repositories {
+        mavenLocal() // Publish to local Maven repository
+    }
 }

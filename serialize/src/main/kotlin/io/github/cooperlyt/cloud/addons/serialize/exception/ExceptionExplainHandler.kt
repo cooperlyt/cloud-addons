@@ -1,8 +1,5 @@
-package io.github.cooperlyt.cloud.addons.serialize
+package io.github.cooperlyt.cloud.addons.serialize.exception
 
-import io.github.cooperlyt.cloud.addons.serialize.exception.HttpStatusExplain
-import io.github.cooperlyt.cloud.addons.serialize.exception.ResponseDefineException
-import io.github.cooperlyt.cloud.addons.serialize.exception.ResponseEntityExceptionHandler
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ValidationException
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass

@@ -1,3 +1,2 @@
-io.github.cooperlyt.cloud.addons.serialize.exception.ExceptionExplainHandler
-io.github.cooperlyt.cloud.addons.serialize.exception.ReactiveExceptionExplainHandler
-io.github.cooperlyt.cloud.addons.serialize.jackson.TypeScriptJackson2ObjectConfigure
+io.github.cooperlyt.cloud.addons.keycloak.auth.OAuthTenantConfigure
+io.github.cooperlyt.cloud.addons.keycloak.auth.OAuthReactiveTenantConfigure

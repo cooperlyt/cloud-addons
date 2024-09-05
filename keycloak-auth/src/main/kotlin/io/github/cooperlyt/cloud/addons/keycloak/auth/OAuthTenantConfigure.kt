@@ -4,31 +4,35 @@ import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.proc.JWSAlgorithmFamilyJWSKeySelector
 import com.nimbusds.jose.proc.JWSKeySelector
 import com.nimbusds.jose.proc.SecurityContext
+import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import com.nimbusds.jwt.proc.JWTClaimsSetAwareJWSKeySelector
 import com.nimbusds.jwt.proc.JWTProcessor
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.convert.converter.Converter
 import org.springframework.security.oauth2.core.*
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.oauth2.jwt.JwtValidators
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.security.oauth2.jwt.*
+import org.springframework.web.reactive.config.WebFluxConfigurer
+import reactor.core.publisher.Mono
 import java.net.URI
-import java.net.URL
+import java.security.Key
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.security.Key
 
-interface TenantRepository {
+@FunctionalInterface
+interface TenantJWKSUriProvider {
 
     fun findJWKSUri(issuer: String): String?
 }
 
 
-class TenantJWSKeySelector(private val tenants: TenantRepository) : JWTClaimsSetAwareJWSKeySelector<SecurityContext> {
+class TenantJWSKeySelector(private val tenants: TenantJWKSUriProvider) : JWTClaimsSetAwareJWSKeySelector<SecurityContext> {
+
 
     private val selectors: MutableMap<String, JWSKeySelector<SecurityContext>> = ConcurrentHashMap()
 
@@ -56,7 +60,7 @@ class TenantJWSKeySelector(private val tenants: TenantRepository) : JWTClaimsSet
     }
 }
 
-class TenantJwtIssuerValidator(private val tenants: TenantRepository) : OAuth2TokenValidator<Jwt> {
+class TenantJwtIssuerValidator(private val tenants: TenantJWKSUriProvider) : OAuth2TokenValidator<Jwt> {
     private val error: OAuth2Error = OAuth2Error(
         OAuth2ErrorCodes.INVALID_TOKEN, "The iss claim is not valid",
         "https://tools.ietf.org/html/rfc6750#section-3.1")
@@ -69,17 +73,18 @@ class TenantJwtIssuerValidator(private val tenants: TenantRepository) : OAuth2To
 
 
 @Configuration
-@ConditionalOnBean(TenantRepository::class)
-class TenantConfigure {
+@ConditionalOnBean(TenantJWKSUriProvider::class)
+@ConditionalOnClass(HttpServletRequest::class)
+class OAuthTenantConfigure {
 
 
     @Bean
-    fun keySelector(tenants: TenantRepository): JWTClaimsSetAwareJWSKeySelector<SecurityContext>{
+    fun keySelector(tenants: TenantJWKSUriProvider): JWTClaimsSetAwareJWSKeySelector<SecurityContext>{
         return TenantJWSKeySelector(tenants)
     }
 
     @Bean
-    fun tokenValidator(tenants: TenantRepository): OAuth2TokenValidator<Jwt>{
+    fun tokenValidator(tenants: TenantJWKSUriProvider): OAuth2TokenValidator<Jwt>{
         return TenantJwtIssuerValidator(tenants)
     }
 
@@ -100,5 +105,60 @@ class TenantConfigure {
         return decoder
     }
 
+}
+
+
+class JwtToClaimsSetConverter(private val jwtProcessor: JWTProcessor<SecurityContext>) :
+    Converter<JWT, Mono<JWTClaimsSet>> {
+    override fun convert(jwt: JWT): Mono<JWTClaimsSet> {
+        return Mono.fromCallable {
+            jwtProcessor.process(
+                jwt,
+                null
+            )
+        }
+    }
+}
+
+@Configuration
+@ConditionalOnBean(TenantJWKSUriProvider::class)
+@ConditionalOnClass(WebFluxConfigurer::class)
+class OAuthReactiveTenantConfigure{
+
+    //TODO Do Reactive Repository
+    /**
+     *  https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/multitenancy.html#_dynamic_tenants
+     *
+     *  https://docs.spring.io/spring-security/reference/reactive/oauth2/resource-server/multitenancy.html
+     */
+
+    @Bean
+    fun keySelector(tenants: TenantJWKSUriProvider): JWTClaimsSetAwareJWSKeySelector<SecurityContext>{
+        return TenantJWSKeySelector(tenants)
+    }
+
+    @Bean
+    fun tokenValidator(tenants: TenantJWKSUriProvider): OAuth2TokenValidator<Jwt>{
+        return TenantJwtIssuerValidator(tenants)
+    }
+
+
+    @Bean
+    fun jwtProcessor(keySelector: JWTClaimsSetAwareJWSKeySelector<SecurityContext>): JwtToClaimsSetConverter {
+        val jwtProcessor = DefaultJWTProcessor<SecurityContext>()
+        jwtProcessor.jwtClaimsSetAwareJWSKeySelector = keySelector
+        return JwtToClaimsSetConverter(jwtProcessor)
+    }
+
+
+    @Bean
+    fun jwtDecoder(jwtProcessor: JwtToClaimsSetConverter, jwtValidator: OAuth2TokenValidator<Jwt>?): ReactiveJwtDecoder {
+
+
+        val decoder = NimbusReactiveJwtDecoder(jwtProcessor)
+        val validator: OAuth2TokenValidator<Jwt> = DelegatingOAuth2TokenValidator(JwtValidators.createDefault(), jwtValidator)
+        decoder.setJwtValidator(validator)
+        return decoder
+    }
 }
 
