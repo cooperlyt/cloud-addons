@@ -1,0 +1,3 @@
+io.github.cooperlyt.cloud.addons.serialize.exception.ExceptionExplainHandler
+io.github.cooperlyt.cloud.addons.serialize.exception.ReactiveExceptionExplainHandler
+io.github.cooperlyt.cloud.addons.serialize.jackson.TypeScriptJackson2ObjectConfigure

@@ -1,0 +1,5 @@
+io.github.cooperlyt.commons.cloud.exception.ExceptionExplainHandler
+io.github.cooperlyt.commons.cloud.exception.ReactiveExceptionExplainHandler
+io.github.cooperlyt.commons.cloud.serialize.TypeScriptJackson2ObjectConfigure
+io.github.cooperlyt.commons.cloud.keycloak.admin.KeycloakAdminAutoConfiguration
+io.github.cooperlyt.commons.cloud.resteasy.ResteasyClientAutoConfiguration
