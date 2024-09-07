@@ -3,7 +3,7 @@ package io.github.cooperlyt.cloud.addons.serialize.jackson
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 
-@ConfigurationProperties(prefix = "mis.jackson")
+@ConfigurationProperties(prefix = "spring.addons.jackson")
 class TypeScriptJacksonProperties {
 
     var zonedDate: ZonedTimeProperties? = null

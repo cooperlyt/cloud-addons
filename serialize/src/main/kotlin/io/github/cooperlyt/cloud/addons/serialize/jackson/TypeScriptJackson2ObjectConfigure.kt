@@ -38,7 +38,7 @@ class TypeScriptJackson2ObjectConfigure {
      */
     @Bean
     @ConditionalOnClass(JavaTimeModule::class)
-    @ConditionalOnProperty(prefix = "mis.jackson.zoned-date", name = ["enable"])
+    @ConditionalOnProperty(prefix = "spring.addons.jackson.zoned-date", name = ["enable"])
     fun jackson2LocalDateTimeMapperBuilder(properties: TypeScriptJacksonProperties): Jackson2ObjectMapperBuilderCustomizer {
         return Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
             val timeZone: String? = properties.zonedDate?.localTimeZone
@@ -75,7 +75,7 @@ class TypeScriptJackson2ObjectConfigure {
      * @return register
      */
     @Bean
-    @ConditionalOnProperty(prefix = "mis.jackson.long-type", name = ["to-string"])
+    @ConditionalOnProperty(prefix = "spring.addons.jackson.long-type", name = ["to-string"])
     fun jackson2LongMapperBuilder(): Jackson2ObjectMapperBuilderCustomizer {
         return Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
             builder.serializerByType(
