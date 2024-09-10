@@ -15,7 +15,7 @@ abstract class RemoteResponseService {
         private val logger = LoggerFactory.getLogger(RemoteResponseService::class.java)
     }
 
-    protected fun <T> responseError(response: ClientResponse): Mono<T> {
+    private fun <T> responseError(response: ClientResponse): Mono<T> {
         logger.warn("request return error. http code: ${response.statusCode().value()}")
 
         if (HttpStatus.NOT_FOUND.isSameCodeAs(response.statusCode())) {

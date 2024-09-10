@@ -1,6 +1,7 @@
 package io.github.cooperlyt.cloud.addons.serialize.jackson
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.slf4j.LoggerFactory
@@ -93,6 +94,23 @@ class TypeScriptJackson2ObjectConfigure {
 
             logger.info("Long Serializer has been installed")
             logger.debug("Long Serializer has been installed --- toStringSerializer")
+        }
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "spring.addons.jackson.custom-class", name = ["enable"])
+    fun jackson2MoneyMapperBuilder(): Jackson2ObjectMapperBuilderCustomizer {
+        return Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
+            // 创建一个 SimpleModule 用来注册自定义的序列化器
+            val module = SimpleModule()
+            // 注册 MoneySerializer
+            module.addSerializer(BigDecimalPropertySerializer::class.java, MoneySerializer())
+
+            // 将模块添加到 Jackson ObjectMapper Builder 中
+            builder.modulesToInstall(module)
+
+            logger.info("BigDecimal property Serializer has been installed")
+            logger.debug("Function… Serializer has been installed --- MoneySerializer")
         }
     }
 }
