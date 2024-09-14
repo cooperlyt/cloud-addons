@@ -1,10 +1,10 @@
 package io.github.cooperlyt.cloud.addons.serialize.exception
 
-import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 
-interface ExceptionStatusCode : DefineStatusCode{
+interface ExceptionStatusCode : ResponseDefineStatus{
 
-    val httpStatus: HttpStatus
+    val httpStatus: HttpStatusCode
 
     fun exception(): ResponseDefineException {
         return ResponseDefineException(this)

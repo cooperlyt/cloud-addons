@@ -1,6 +1,6 @@
 package io.github.cooperlyt.cloud.addons.serialize
 
-import io.github.cooperlyt.cloud.addons.serialize.exception.DefineStatusCode
+import io.github.cooperlyt.cloud.addons.serialize.exception.ResponseDefineStatus
 import io.github.cooperlyt.cloud.addons.serialize.exception.HttpStatusExplain
 import io.github.cooperlyt.cloud.addons.serialize.exception.ResponseDefineException
 import org.slf4j.LoggerFactory
@@ -23,7 +23,7 @@ abstract class RemoteResponseService {
         }
 
         return response.bodyToMono(HttpStatusExplain::class.java)
-            .switchIfEmpty(Mono.error(ResponseDefineException(HttpStatus.BAD_GATEWAY, object : DefineStatusCode {
+            .switchIfEmpty(Mono.error(ResponseDefineException(HttpStatus.BAD_GATEWAY, object : ResponseDefineStatus {
                 //                override val code: Int
 //                    get() = 8000001
 //                override val message: String

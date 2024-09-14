@@ -11,7 +11,7 @@ interface BigDecimalPropertySerializer {
     val serializerValue: BigDecimal
 }
 
-class MoneySerializer : JsonSerializer<BigDecimalPropertySerializer>() {
+class ToBigDecimalSerializer : JsonSerializer<BigDecimalPropertySerializer>() {
 
     @Throws(IOException::class)
     override fun serialize(numberClazz: BigDecimalPropertySerializer, jsonGenerator: JsonGenerator, serializers: SerializerProvider) {

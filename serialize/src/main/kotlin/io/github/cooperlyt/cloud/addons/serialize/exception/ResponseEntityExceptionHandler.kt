@@ -34,7 +34,7 @@ open class ResponseEntityExceptionHandler {
     }
 
     protected fun defineExceptionHandler(ex: ResponseDefineException, path: String): ResponseEntity<HttpStatusExplain> {
-        logger.warn("Define exception: ${ex.defineStatusCode}", ex)
-        return ResponseEntity(HttpStatusExplain(ex.defineStatusCode, ex.args, path), ex.statusCode)
+        logger.warn("Define exception: ${ex.responseDefineStatus}", ex)
+        return ResponseEntity(HttpStatusExplain(ex.responseDefineStatus, ex.args, path), ex.statusCode)
     }
 }

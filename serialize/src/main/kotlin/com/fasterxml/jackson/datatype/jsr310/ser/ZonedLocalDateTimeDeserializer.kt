@@ -1,4 +1,4 @@
-package io.github.cooperlyt.cloud.addons.serialize.jackson
+package com.fasterxml.jackson.datatype.jsr310.ser
 
 import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer
 import java.time.LocalDateTime

@@ -1,4 +1,4 @@
-package io.github.cooperlyt.cloud.addons.serialize.jackson
+package com.fasterxml.jackson.datatype.jsr310.ser
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.core.JsonGenerator
@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.datatype.jsr310.DecimalUtils
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializerBase
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.time.LocalDateTime
@@ -14,10 +13,10 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-class ZonedLocalDateTimeSerializer : InstantSerializerBase<LocalDateTime> {
+open class ZonedLocalDateTimeSerializer : InstantSerializerBase<LocalDateTime> {
 
     companion object {
-        private const val serialVersionUID = 1L
+
         val INSTANCE = ZonedLocalDateTimeSerializer()
 
         private val logger = LoggerFactory.getLogger(ZonedLocalDateTimeSerializer::class.java)
@@ -29,7 +28,7 @@ class ZonedLocalDateTimeSerializer : InstantSerializerBase<LocalDateTime> {
     /**
      * Flag for `JsonFormat.Feature.WRITE_DATES_WITH_ZONE_ID`
      */
-    protected val _writeZoneId: Boolean?
+    private val _writeZoneId: Boolean?
 
     constructor() : this(DateTimeFormatter.ISO_OFFSET_DATE_TIME, ZoneId.systemDefault())
 
@@ -59,6 +58,7 @@ class ZonedLocalDateTimeSerializer : InstantSerializerBase<LocalDateTime> {
         writeZoneId: Boolean?,
         sourceZoneId: ZoneId
     ) : this(base, useTimestamp, base._useNanoseconds, formatter, base._shape, writeZoneId, sourceZoneId)
+
 
     protected constructor(
         base: ZonedLocalDateTimeSerializer,
@@ -127,7 +127,7 @@ class ZonedLocalDateTimeSerializer : InstantSerializerBase<LocalDateTime> {
     /**
      * @since 2.8
      */
-    fun shouldWriteWithZoneId(ctxt: SerializerProvider): Boolean {
+    private fun shouldWriteWithZoneId(ctxt: SerializerProvider): Boolean {
         return _writeZoneId ?: ctxt.isEnabled(SerializationFeature.WRITE_DATES_WITH_ZONE_ID)
     }
 
@@ -139,7 +139,7 @@ class ZonedLocalDateTimeSerializer : InstantSerializerBase<LocalDateTime> {
         }
     }
 
-    protected fun formatValue(value: ZonedDateTime, provider: SerializerProvider): String {
+    private fun formatValue(value: ZonedDateTime, provider: SerializerProvider): String {
         var formatter = _formatter ?: DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
         if (formatter.zone == null) {

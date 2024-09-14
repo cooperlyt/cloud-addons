@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.cooperlyt.cloud.addons"
-version = "4.0.7"
+version = "4.0.12"
 
 repositories {
     mavenCentral()

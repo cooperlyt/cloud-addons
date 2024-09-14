@@ -9,13 +9,13 @@ open class HttpStatusExplain @JsonCreator constructor(
     @JsonProperty("path") val path: String,
     @JsonProperty("code") private val code: Int,
     @JsonProperty("message")private val message: String
-) : DefineStatusCode {
+) : ResponseDefineStatus {
 
-    var args: Array<String> = arrayOf()
+    private var args: Array<String> = arrayOf()
 
     protected constructor(path: String, code: Int, message: String) : this(Date(), path, code, message)
 
-    constructor(statusCode: DefineStatusCode, args: Array<String>, path: String) : this(
+    constructor(statusCode: ResponseDefineStatus, args: Array<String>, path: String) : this(
         Date(),
         path,
         statusCode.getCode(),

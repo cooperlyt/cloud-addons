@@ -13,5 +13,6 @@ class JsonRawDeserializer : com.fasterxml.jackson.databind.JsonDeserializer<Stri
         val node: com.fasterxml.jackson.databind.JsonNode =
             mapper.readTree(jsonParser)
         return mapper.writeValueAsString(node)
+
     }
 }
