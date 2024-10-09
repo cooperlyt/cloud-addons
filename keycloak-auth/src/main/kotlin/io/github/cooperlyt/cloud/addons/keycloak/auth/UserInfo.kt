@@ -4,5 +4,7 @@ interface UserInfo {
 
     val id: String
 
-    val name: String
+    val givenName: String
+
+    val familyName: String
 }

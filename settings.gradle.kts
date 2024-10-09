@@ -3,6 +3,5 @@ plugins {
 }
 rootProject.name = "cloud-addons"
 include("keycloak-auth")
-include("response")
 include("serialize")
 include("keycloak-admin")
