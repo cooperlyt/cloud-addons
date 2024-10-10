@@ -10,8 +10,10 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import com.nimbusds.jwt.proc.JWTClaimsSetAwareJWSKeySelector
 import com.nimbusds.jwt.proc.JWTProcessor
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
@@ -33,8 +35,6 @@ interface TenantJWKSUriProvider {
 
     fun findJWKSUri(issuer: String): String?
 }
-
-
 
 class TenantJWSKeySelector(private val tenants: TenantJWKSUriProvider) : JWTClaimsSetAwareJWSKeySelector<SecurityContext> {
 
@@ -132,6 +132,15 @@ interface ReactiveTenantIssuerValidator {
     fun valid(issuer: String): Mono<Boolean>
 }
 
+class RegexTenantIssuerValidator(private val regex: String): ReactiveTenantIssuerValidator {
+
+    override fun valid(issuer: String): Mono<Boolean> {
+        return Mono.just(regex.toRegex().matches(issuer))
+    }
+
+
+}
+
 class ReactiveAuthenticationManagerProvider(private val tenantJWKSUriProvider: ReactiveTenantIssuerValidator) {
 
     private val authenticationManagers: MutableMap<String, ReactiveAuthenticationManager> = mutableMapOf()
@@ -156,13 +165,20 @@ class ReactiveAuthenticationManagerProvider(private val tenantJWKSUriProvider: R
     }
 }
 
+
 @Configuration
-@ConditionalOnBean(ReactiveTenantIssuerValidator::class)
 @ConditionalOnClass(WebFluxConfigurer::class)
 class OAuthReactiveTenantConfigure{
 
 
     @Bean
+    @ConditionalOnProperty(prefix = "spring.addons.keycloak.oauth2" , name = ["issuer-regex"])
+    fun regexTenantIssuerValidator(@Value("\${spring.addons.keycloak.oauth2.issuer-regex}") regex: String): RegexTenantIssuerValidator {
+        return RegexTenantIssuerValidator(regex)
+    }
+
+    @Bean
+    @ConditionalOnBean(ReactiveTenantIssuerValidator::class)
     @Lazy
     fun authenticationManagerProvider(tenantJWKSUriProvider: ReactiveTenantIssuerValidator): ReactiveAuthenticationManagerProvider{
         return ReactiveAuthenticationManagerProvider(tenantJWKSUriProvider)
