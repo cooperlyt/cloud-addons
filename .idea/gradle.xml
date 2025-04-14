@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/keycloak-admin" />
             <option value="$PROJECT_DIR$/keycloak-auth" />
+            <option value="$PROJECT_DIR$/mq-rabbit" />
             <option value="$PROJECT_DIR$/serialize" />
           </set>
         </option>

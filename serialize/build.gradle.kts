@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.cooperlyt.cloud.addons"
-version = "4.0.13"
+version = "4.0.15"
 
 repositories {
     mavenCentral()
@@ -21,6 +21,9 @@ dependencies {
 
     api("org.springframework.boot:spring-boot-starter-validation")
     api("org.springframework.boot:spring-boot-autoconfigure")
+
+
+    compileOnly("org.springframework.data:spring-data-r2dbc")
 
     compileOnly("org.springframework:spring-web")
     compileOnly("org.slf4j:slf4j-api")

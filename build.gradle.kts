@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.spring") version "2.0.20"
-    id("org.springframework.boot") version "3.3.4"
-    id("io.spring.dependency-management") version "1.1.6"
+    kotlin("jvm") version "2.1.20"
+    kotlin("plugin.spring") version "2.1.20"
+    id("org.springframework.boot") version "3.4.4"
+    id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "io.github.cooperlyt"
@@ -15,7 +15,7 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 
     //ext["misCloudVersion"] = "2.3.0"
-    extra["springCloudVersion"] = "2023.0.3"
+    extra["springCloudVersion"] = "2024.0.1"
 
     repositories {
         mavenLocal()

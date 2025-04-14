@@ -5,3 +5,4 @@ rootProject.name = "cloud-addons"
 include("keycloak-auth")
 include("serialize")
 include("keycloak-admin")
+include("mq-rabbit")
