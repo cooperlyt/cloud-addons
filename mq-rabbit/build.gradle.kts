@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.cooperlyt.cloud.addons"
-version = "1.1.1"
+version = "1.1.2"
 
 repositories {
     mavenCentral()
@@ -13,8 +13,6 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
-
-
     }
 }
 
@@ -31,7 +29,6 @@ dependencies {
 
     compileOnly("org.springframework:spring-messaging")
     compileOnly("org.springframework.amqp:spring-rabbit")
-
     compileOnly("org.springframework.amqp:spring-amqp")
 
     compileOnly("io.projectreactor:reactor-core")
@@ -43,6 +40,12 @@ dependencies {
 tasks.bootJar {
     enabled = false
 }
+
+tasks.jar {
+    archiveClassifier.set("") // 移除 -plain 后缀
+}
+
+
 
 tasks.test {
     useJUnitPlatform()
@@ -56,6 +59,7 @@ configure<PublishingExtension> {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            //artifact(tasks.jar) // 明确指定 jar 任务的输出
         }
     }
     repositories {

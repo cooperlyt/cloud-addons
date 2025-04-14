@@ -115,7 +115,8 @@ abstract class AcknowledgeConsumer<T> {
                             logger.warn("process message fail $message", error)
                             val deliveryTag = message.headers[AmqpHeaders.DELIVERY_TAG] as Long
                             val channel = message.headers[AmqpHeaders.CHANNEL] as Channel
-                            channel.basicNack(deliveryTag, false, true) // Manual NACK and requeue
+                            // channel.basicNack(deliveryTag, false, true) // Manual NACK and multiple , requeue
+                            channel.basicReject(deliveryTag, error !is InvalidMessageException) // Manual NACK and not requeue
                         }
 
                 }
