@@ -33,8 +33,12 @@ open class ConfirmPublisher<T> {
 
     private val sinks: Sinks.Many<Message<T>> = Sinks.many().multicast().onBackpressureBuffer()
 
-    protected fun sinks() : Supplier<Flux<Message<T>>> {
+    fun sinks() : Supplier<Flux<Message<T>>> {
         return Supplier { with(sinks) { asFlux() } }
+    }
+
+    fun sendMessage(message: T): Mono<Boolean> {
+        return sendMessage(message)
     }
 
     protected fun sendMessage(message: T, timeout: Duration, vararg headers: Pair<String,String>): Mono<Boolean> {
@@ -45,7 +49,7 @@ open class ConfirmPublisher<T> {
         return sendMessage(message, mapOf(*headers) , Duration.ofSeconds(DEFAULT_CONFIRM_TIMEOUT))
     }
 
-    protected fun sendMessage(message: T,
+    private fun sendMessage(message: T,
                               headers: Map<String,String> = emptyMap(),
                               timeout: Duration = Duration.ofSeconds(DEFAULT_CONFIRM_TIMEOUT)
     ): Mono<Boolean> {
