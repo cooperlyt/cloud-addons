@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.cooperlyt.cloud.addons"
-version = "4.0.12"
+version = "4.0.13"
 
 repositories {
     mavenCentral()
@@ -12,8 +12,8 @@ repositories {
 
 dependencies {
 
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
-    implementation("io.projectreactor:reactor-core")
+    api("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    api("io.projectreactor:reactor-core")
 
     testImplementation(kotlin("test"))
 

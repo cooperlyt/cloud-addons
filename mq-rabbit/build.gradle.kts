@@ -24,15 +24,16 @@ dependencies {
     api("org.springframework.boot:spring-boot-autoconfigure")
 
     api("org.slf4j:slf4j-api")
+    api("org.springframework.cloud:spring-cloud-starter-stream-rabbit")
 
-    compileOnly("org.springframework.cloud:spring-cloud-stream-binder-rabbit")
+//    api("org.springframework.cloud:spring-cloud-stream-binder-rabbit")
+//
+//    api("org.springframework:spring-messaging")
+//    api("org.springframework.amqp:spring-rabbit")
+//    api("org.springframework.amqp:spring-amqp")
 
-    compileOnly("org.springframework:spring-messaging")
-    compileOnly("org.springframework.amqp:spring-rabbit")
-    compileOnly("org.springframework.amqp:spring-amqp")
-
-    compileOnly("io.projectreactor:reactor-core")
-    compileOnly("com.fasterxml.jackson.core:jackson-databind")
+    api("io.projectreactor:reactor-core")
+//    api("com.fasterxml.jackson.core:jackson-databind")
 
 }
 

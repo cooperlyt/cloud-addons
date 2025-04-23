@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.locks.LockSupport
 import java.util.function.Supplier
 
 /**
@@ -38,8 +39,26 @@ open class ConfirmPublisher<T> {
     }
 
     fun sendMessage(message: T): Mono<Boolean> {
-        return sendMessage(message)
+        return sendMessage(message, emptyMap())
     }
+
+    fun sendNoConfirmMessage(message: T, vararg headers: Pair<String,String>, maxAttempts: Int = 1, parkNanos: Long = 10 ) {
+        val msg = MessageBuilder.withPayload(message!!)
+            .apply { headers.forEach { this.setHeader(it.first,it.second) } }
+            .build()
+        var counter = 0
+        var succuss = false
+        while (sinks.tryEmitNext(msg).isFailure.let { succuss = !it; it  } && counter < maxAttempts) {
+            logger.warn("process message fail $message, trying again in $parkNanos nanos")
+            LockSupport.parkNanos(parkNanos);
+            counter++
+        }
+        if (succuss) {
+            logger.debug("process message successfully sent {}", message)
+        }else
+            logger.error("process message fail $message, trying again in $counter seconds")
+    }
+
 
     protected fun sendMessage(message: T, timeout: Duration, vararg headers: Pair<String,String>): Mono<Boolean> {
         return sendMessage(message, mapOf(*headers) , timeout)
@@ -48,6 +67,8 @@ open class ConfirmPublisher<T> {
     protected fun sendMessage(message: T, vararg headers: Pair<String,String>): Mono<Boolean> {
         return sendMessage(message, mapOf(*headers) , Duration.ofSeconds(DEFAULT_CONFIRM_TIMEOUT))
     }
+
+
 
     private fun sendMessage(message: T,
                               headers: Map<String,String> = emptyMap(),
@@ -78,6 +99,7 @@ open class ConfirmPublisher<T> {
 //        sinks.emitNext(msg, Sinks.EmitFailureHandler.FAIL_FAST)
 
         if (sinks.tryEmitNext(msg).isFailure) {
+            logger.warn("send message fail $message")
             return Mono.just(false)
         }
 
