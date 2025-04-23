@@ -42,13 +42,10 @@ open class ConfirmPublisher<T> {
         return sendMessage(message, emptyMap())
     }
 
-    fun sendNoConfirmMessage(message: T, vararg headers: Pair<String,String>, maxAttempts: Int = 1, parkNanos: Long = 10 ) {
-        val msg = MessageBuilder.withPayload(message!!)
-            .apply { headers.forEach { this.setHeader(it.first,it.second) } }
-            .build()
+    private fun sendNoConfirmMessage(message: Message<T>, maxAttempts: Int = 1, parkNanos: Long = 10): Boolean {
         var counter = 0
         var succuss = false
-        while (sinks.tryEmitNext(msg).isFailure.let { succuss = !it; it  } && counter < maxAttempts) {
+        while (sinks.tryEmitNext(message).isFailure.also { succuss = !it  } && counter < maxAttempts) {
             logger.warn("process message fail $message, trying again in $parkNanos nanos")
             LockSupport.parkNanos(parkNanos);
             counter++
@@ -57,6 +54,22 @@ open class ConfirmPublisher<T> {
             logger.debug("process message successfully sent {}", message)
         }else
             logger.error("process message fail $message, trying again in $counter seconds")
+        return succuss
+
+    }
+
+    fun sendNoConfirmMessage(message: T, vararg headers: Pair<String,String>, maxAttempts: Int = 1, parkNanos: Long = 10): Boolean {
+        val msg = MessageBuilder.withPayload(message!!)
+            .apply { headers.forEach { this.setHeader(it.first,it.second) } }
+            .build()
+
+        return sendNoConfirmMessage(msg, maxAttempts, parkNanos)
+
+    }
+
+    fun sendNoConfirmMessage(message: Message<T>, vararg headers: Pair<String,String>, maxAttempts: Int = 1, parkNanos: Long = 10 ): Boolean{
+
+        return sendNoConfirmMessage(message.also { msg -> headers.forEach { msg.headers.put(it.first, it.second) } }, maxAttempts, parkNanos)
     }
 
 
