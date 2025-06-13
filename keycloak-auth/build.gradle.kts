@@ -31,6 +31,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.jar {
+    archiveClassifier.set("") // 移除 -plain 后缀
+}
+
 kotlin {
     jvmToolchain(21)
 }

@@ -22,6 +22,7 @@ import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.oauth2.core.*
 import org.springframework.security.oauth2.jwt.*
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager
 import org.springframework.web.reactive.config.WebFluxConfigurer
 import reactor.core.publisher.Mono
@@ -156,7 +157,7 @@ class ReactiveAuthenticationManagerProvider(private val tenantJWKSUriProvider: R
     }
 
     private fun addManager(issuer: String): Mono<JwtReactiveAuthenticationManager> {
-        return Mono.fromCallable { ReactiveJwtDecoders.fromIssuerLocation(issuer) }
+        return Mono.fromCallable<ReactiveJwtDecoder> { ReactiveJwtDecoders.fromIssuerLocation(issuer) }
             .subscribeOn(Schedulers.boundedElastic())
             .map { jwtDecoder -> JwtReactiveAuthenticationManager(jwtDecoder) }
             .doOnNext { authenticationManager ->
